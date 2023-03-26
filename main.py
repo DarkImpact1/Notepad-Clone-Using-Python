@@ -8,7 +8,6 @@ def Writing_Tablet():
     root.iconbitmap('icon.jpg')
 
     get_path=''
-    saved = False
     # Funtions for dropdown of Files
     def open_file(event= None,path=None):
         nonlocal get_path
@@ -66,7 +65,7 @@ def Writing_Tablet():
 
     # creating Main menu bar
     main_menu = tk.Menu(root,bg='grey')
-    text_box = tk.Text(root)
+    text_box = tk.Text(root,font=("Helvetica", 12))
     
 
     # here i'm inserting scroll bar
@@ -75,15 +74,15 @@ def Writing_Tablet():
 
     # Creating drop down meny for File
     submenu_file = tk.Menu(main_menu,tearoff=0)
-    submenu_file.add_command(label="Open                        Ctrl+O", command=open_file)
-    submenu_file.add_command(label="New file                   Ctrl+N", command=new_file)
-    submenu_file.add_command(label="New Window          Ctrl+W", command=new_window)
-    submenu_file.add_command(label="Save                          Ctrl+S", command=save_file)
-    submenu_file.add_command(label="Save as          Ctrl+Shift+S", command=save_file_as)
+    submenu_file.add_command(label="Open                        Ctrl+O",accelerator='Ctrl+O', command=open_file)
+    submenu_file.add_command(label="New file                   Ctrl+N",accelerator='Ctrl+N', command=new_file)
+    submenu_file.add_command(label="New Window          Ctrl+W",accelerator='Ctrl+W', command=new_window)
+    submenu_file.add_command(label="Save                          Ctrl+S",accelerator='Ctrl+S', command=save_file)
+    submenu_file.add_command(label="Save as          Ctrl+Shift+S",accelerator='Ctrl+Shift+S', command=save_file_as)
     submenu_file.add_command(label="Exit", command=quit_program)
     main_menu.add_cascade(label='File', menu=submenu_file)
 
-#       binding shortcuts for submenu_file
+    # binding shortcuts for submenu_file
     root.bind("<Control-o>", open_file)
     root.bind("<Control-n>", new_file)
     root.bind("<Control-s>", save_file)
@@ -97,7 +96,6 @@ def Writing_Tablet():
 
 
     def undo(event=None):
-        
         try:
             text_box.edit_undo()
             print("undo....")
@@ -105,9 +103,25 @@ def Writing_Tablet():
             print(e)
 
     def cut(event=None):
-        pass
-    def copy(event=None):
-        pass
+        global selected_text
+        # get the currently selected text
+        selected_text = text_box.selection_get()
+        # delete the selected text
+        text_box.delete("sel.first", "sel.last")
+
+    def copy_text(event=None):
+        try:
+            # Get the currently selected text in the text box
+            selected_text = root.clipboard_get()
+        except tk.TclError:
+            # If there is no selected text, do nothing
+            return
+        
+        # Put the selected text on the clipboard
+        root.clipboard_clear()
+        root.clipboard_append(selected_text)
+
+
     def paste(event=None):
         pass
     def find(event=None):
@@ -120,21 +134,21 @@ def Writing_Tablet():
         pass
 
     submenu_edit = tk.Menu(main_menu, tearoff=0)
-    submenu_edit.add_command(label='Undo                        Ctrl+Z',command=undo)
-    submenu_edit.add_command(label='Cut                           Ctrl+X',command=cut)
-    submenu_edit.add_command(label='Copy                        Ctrl+C',command=copy)
-    submenu_edit.add_command(label='Paste                        Ctrl+V',command=paste)
-    submenu_edit.add_command(label='Find                          Ctrl+F',command=find)
-    submenu_edit.add_command(label='Find Next               Shift+F',command=find_next)
-    submenu_edit.add_command(label='Find Previous   Ctrl+Shift+F',command=find_previous)
-    submenu_edit.add_command(label='Replace                    Ctrl+R',command=replace)
+    submenu_edit.add_command(label='Undo                        Ctrl+Z',accelerator='Ctrl+Z',command=undo)
+    submenu_edit.add_command(label='Cut                           Ctrl+X',accelerator='Ctrl+X',command=cut)
+    submenu_edit.add_command(label='Copy                        Ctrl+C',accelerator='Ctrl+C',command=copy_text)
+    submenu_edit.add_command(label='Paste                        Ctrl+V',accelerator='Ctrl+V',command=paste)
+    submenu_edit.add_command(label='Find                          Ctrl+F',accelerator='Ctrl+F',command=find)
+    submenu_edit.add_command(label='Find Next               Shift+F',accelerator='Shift+F',command=find_next)
+    submenu_edit.add_command(label='Find Previous   Ctrl+Shift+F',accelerator='Ctrl+Shift+F',command=find_previous)
+    submenu_edit.add_command(label='Replace                    Ctrl+R',accelerator='Ctrl+R',command=replace)
     main_menu.add_cascade(label='Edit', menu=submenu_edit)
 
 
-# binding shortcut for submenu of edit button
+# # binding shortcut for submenu of edit button
     root.bind("<Control-z>", undo)
     root.bind("<Control-x>", cut)
-    root.bind("<Control-c>", copy)
+    root.bind("<Control-c>", copy_text)
     root.bind("<Control-v>", paste)
     root.bind("<Control-f>", find)
     root.bind("<Control-f>", find)
@@ -142,6 +156,27 @@ def Writing_Tablet():
     root.bind("<Control-Shift-f>", find_previous)
     root.bind("<Control-r>", replace)
     
+
+
+
+
+#--- Adding extra feature to change backgroung color
+    def change_bg_color(color,fgcolor='white'):
+        text_box.config(bg=color,fg=fgcolor)
+
+    # create bg_color menu
+    Format = tk.Menu(main_menu, tearoff=0)
+    bg_color_menu = tk.Menu(Format, tearoff=0)
+    bg_color_menu.add_command(label="White", command=lambda: change_bg_color("white",'black'))
+    bg_color_menu.add_command(label="Black", command=lambda: change_bg_color("black",'white'))
+    bg_color_menu.add_command(label="Gray", command=lambda: change_bg_color("gray",))
+    bg_color_menu.add_command(label="Brown", command=lambda: change_bg_color("brown",))
+    bg_color_menu.add_command(label="Red", command=lambda: change_bg_color("red",))
+    bg_color_menu.add_command(label="Yellow", command=lambda: change_bg_color("yellow",'red'))
+    bg_color_menu.add_command(label="Green", command=lambda: change_bg_color("green",'yellow'))
+    Format.add_cascade(label="Bg Color", menu=bg_color_menu)
+    main_menu.add_cascade(label='Format',menu=Format)
+
 
     scroll.config(command=text_box.yview)
     text_box.pack(fill='both', expand=True)
