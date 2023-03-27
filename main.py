@@ -74,11 +74,11 @@ def Writing_Tablet():
 
     # Creating drop down meny for File
     submenu_file = tk.Menu(main_menu,tearoff=0)
-    submenu_file.add_command(label="Open                        Ctrl+O",accelerator='Ctrl+O', command=open_file)
-    submenu_file.add_command(label="New file                   Ctrl+N",accelerator='Ctrl+N', command=new_file)
-    submenu_file.add_command(label="New Window          Ctrl+W",accelerator='Ctrl+W', command=new_window)
-    submenu_file.add_command(label="Save                          Ctrl+S",accelerator='Ctrl+S', command=save_file)
-    submenu_file.add_command(label="Save as          Ctrl+Shift+S",accelerator='Ctrl+Shift+S', command=save_file_as)
+    submenu_file.add_command(label="Open",accelerator='Ctrl+O', command=open_file)
+    submenu_file.add_command(label="New file",accelerator='Ctrl+N', command=new_file)
+    submenu_file.add_command(label="New Window",accelerator='Ctrl+W', command=new_window)
+    submenu_file.add_command(label="Save",accelerator='Ctrl+S', command=save_file)
+    submenu_file.add_command(label="Save as",accelerator='Ctrl+Shift+S', command=save_file_as)
     submenu_file.add_command(label="Exit", command=quit_program)
     main_menu.add_cascade(label='File', menu=submenu_file)
 
@@ -104,10 +104,13 @@ def Writing_Tablet():
 
     def cut(event=None):
         global selected_text
-        # get the currently selected text
-        selected_text = text_box.selection_get()
-        # delete the selected text
-        text_box.delete("sel.first", "sel.last")
+        try:
+            # Get the currently selected text in the text box
+            selected_text = root.clipboard_get()
+            text_box.delete(selected_text)
+        except:
+            return
+
 
     def copy_text(event=None):
         try:
@@ -123,25 +126,65 @@ def Writing_Tablet():
 
 
     def paste(event=None):
-        pass
-    def find(event=None):
-        pass
+        try:
+            root.clipboard_append(selected_text)
+        except:
+            pass
+        
+
+    def find_and_replace(event=None):
+        # Create a tkinter window
+
+        # Create a Find and Replace window
+        find_replace_window = tk.Toplevel(root)
+
+        # Create labels and entry widgets for Find and Replace fields
+        tk.Label(find_replace_window, text="Find:").grid(row=0, column=0)
+        find_entry = tk.Entry(find_replace_window)
+        find_entry.grid(row=0, column=1)
+        tk.Label(find_replace_window, text="Replace:").grid(row=1, column=0)
+        replace_entry = tk.Entry(find_replace_window)
+        replace_entry.grid(row=1, column=1)
+
+        # Create a function to find and replace text
+        def replace_text():
+            # Get the text to find and the replacement text
+            find_text = find_entry.get()
+            replace_text = replace_entry.get()
+
+            # Find all occurrences of the find text
+            start = "1.0"
+            while True:
+                start = text_box.search(find_text, start, stopindex=tk.END)
+                if not start:
+                    break
+
+                # Replace the text
+                end = f"{start}+{len(find_text)}c"
+                text_box.delete(start, end)
+                text_box.insert(start, replace_text)
+
+                # Move the start position to the end of the replaced text
+                start = end
+
+        # Create a button to run the replace_text function
+        replace_button = tk.Button(find_replace_window, text="Replace", command=replace_text)
+        replace_button.grid(row=2, column=0, columnspan=2)
+
+
     def find_next(event=None):
         pass
     def find_previous(event=None):
         pass
-    def replace():
-        pass
+
 
     submenu_edit = tk.Menu(main_menu, tearoff=0)
-    submenu_edit.add_command(label='Undo                        Ctrl+Z',accelerator='Ctrl+Z',command=undo)
-    submenu_edit.add_command(label='Cut                           Ctrl+X',accelerator='Ctrl+X',command=cut)
-    submenu_edit.add_command(label='Copy                        Ctrl+C',accelerator='Ctrl+C',command=copy_text)
-    submenu_edit.add_command(label='Paste                        Ctrl+V',accelerator='Ctrl+V',command=paste)
-    submenu_edit.add_command(label='Find                          Ctrl+F',accelerator='Ctrl+F',command=find)
-    submenu_edit.add_command(label='Find Next               Shift+F',accelerator='Shift+F',command=find_next)
-    submenu_edit.add_command(label='Find Previous   Ctrl+Shift+F',accelerator='Ctrl+Shift+F',command=find_previous)
-    submenu_edit.add_command(label='Replace                    Ctrl+R',accelerator='Ctrl+R',command=replace)
+    submenu_edit.add_command(label='Undo',accelerator='Ctrl+Z',command=undo)
+    submenu_edit.add_command(label='Cut',accelerator='Ctrl+X',command=cut)
+    submenu_edit.add_command(label='Copy',accelerator='Ctrl+C',command=copy_text)
+    submenu_edit.add_command(label='Paste',accelerator='Ctrl+V',command=paste)
+    submenu_edit.add_command(label='Find & Replace',accelerator='Ctrl+h',command=find_and_replace)
+
     main_menu.add_cascade(label='Edit', menu=submenu_edit)
 
 
@@ -150,11 +193,8 @@ def Writing_Tablet():
     root.bind("<Control-x>", cut)
     root.bind("<Control-c>", copy_text)
     root.bind("<Control-v>", paste)
-    root.bind("<Control-f>", find)
-    root.bind("<Control-f>", find)
-    root.bind("<Shift-f>", find_next)
-    root.bind("<Control-Shift-f>", find_previous)
-    root.bind("<Control-r>", replace)
+    root.bind("<Control-h>", find_and_replace)
+
     
 
 
