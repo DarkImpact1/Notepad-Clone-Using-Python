@@ -167,15 +167,42 @@ def Writing_Tablet():
                 # Move the start position to the end of the replaced text
                 start = end
 
+# Create a function to highlight the text
+        def highlight_text(event=None):
+            # Get the text to find
+            find_text = find_entry.get()
+
+            # Remove any existing tags
+            text_box.tag_remove("highlight", "1.0", tk.END)
+
+            # If find entry is empty, return without searching for or highlighting any text
+            if not find_text:
+                return
+
+            # Find all occurrences of the find text
+            start = "1.0"
+            while True:
+                start = text_box.search(find_text, start, stopindex=tk.END)
+                if not start:
+                    break
+
+                # Highlight the text
+                end = f"{start}+{len(find_text)}c"
+                text_box.tag_add("highlight", start, end)
+
+                # Move the start position to the end of the highlighted text
+                start = end
+
+
+        # Bind the highlight_text function to the find entry
+        find_entry.bind("<KeyRelease>", highlight_text)
+
         # Create a button to run the replace_text function
         replace_button = tk.Button(find_replace_window, text="Replace", command=replace_text)
         replace_button.grid(row=2, column=0, columnspan=2)
 
-
-    def find_next(event=None):
-        pass
-    def find_previous(event=None):
-        pass
+        # Add a tag configuration for highlighting
+        text_box.tag_configure("highlight", background="yellow")
 
 
     submenu_edit = tk.Menu(main_menu, tearoff=0)
