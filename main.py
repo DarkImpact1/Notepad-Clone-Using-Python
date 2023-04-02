@@ -53,8 +53,7 @@ def Writing_Tablet():
 
     def quit_program():
         if text_box.edit_modified():
-            response = messagebox.askyesnocancel("Save Changes", "Do you want to save changes before exiting?")
-            
+            response = messagebox.askyesnocancel("Save Changes", "Do you want to save changes before exiting?")          
             if response == True:
                 if save_file():
                     root.destroy()
@@ -92,9 +91,7 @@ def Writing_Tablet():
 
 #---------------Here File and it's submenu's work is finished---------------------------------------------------
 
-# creating another button for menu---------------------------------
-
-
+# --------------------------------creating another button for menu---------------------------------
     def undo(event=None):
         try:
             text_box.edit_undo()
@@ -239,12 +236,6 @@ def Writing_Tablet():
 
 
 
-
-
-
-
-
-
 # adding feature which will count words and number of character and print it simulataneously at the bottom 
     status_label = tk.Label(root, text='')
     status_label.pack(side="bottom")
@@ -263,7 +254,7 @@ def Writing_Tablet():
 
 
 
-
+    scroll.config(command=text_box.xview)
     scroll.config(command=text_box.yview)
     text_box.pack(fill='both', expand=True)
     root.config(menu=main_menu)
