@@ -62,16 +62,19 @@ def Writing_Tablet():
         else:
             root.destroy()
 
-    # creating Main menu bar
+# [+] _____________________________adding Main Menu__________________________________________
     main_menu = tk.Menu(root,bg='grey')
-    text_box = tk.Text(root,font=("Helvetica", 12))
+
+# [+] _____________________________adding scroll bar for the text box__________________________________________
+    scroll_y = tk.Scrollbar(root)
+    scroll_y.pack(side='right',fill='y')
+
+# [+] _____________________________adding 'text box' Menu__________________________________________
+    text_box = tk.Text(root,font=("Helvetica", 12),yscrollcommand=scroll_y.set, wrap='word')
     
 
-    # here i'm inserting scroll bar
-    scroll = tk.Scrollbar(root)
-    scroll.pack(side='right',fill='y')
 
-    # Creating drop down meny for File
+# [+] _____________________________adding submenu 'File' in my main menu__________________________________________
     submenu_file = tk.Menu(main_menu,tearoff=0)
     submenu_file.add_command(label="Open",accelerator='Ctrl+O', command=open_file)
     submenu_file.add_command(label="New file",accelerator='Ctrl+N', command=new_file)
@@ -89,7 +92,7 @@ def Writing_Tablet():
     root.bind("<Control-w>", new_window)
     root.protocol("WM_DELETE_WINDOW", quit_program)
 
-#---------------Here File and it's submenu's work is finished---------------------------------------------------
+# [-] -------------Here File and it's submenu's work is finished---------------------------------------------------
 
 # --------------------------------creating another button for menu---------------------------------
     def undo(event=None):
@@ -197,7 +200,7 @@ def Writing_Tablet():
         # Add a tag configuration for highlighting
         text_box.tag_configure("highlight", background="yellow")
 
-
+# [+] _____________________________adding submenu 'Edit' in my main menu__________________________________________
     submenu_edit = tk.Menu(main_menu, tearoff=0)
     submenu_edit.add_command(label='Undo',accelerator='Ctrl+Z',command=undo)
     submenu_edit.add_command(label='Cut',accelerator='Ctrl+X',command=cut)
@@ -214,24 +217,24 @@ def Writing_Tablet():
     root.bind("<Control-v>", paste)
     root.bind("<Control-h>", find_and_replace)
 
-# ---------------------------- END OF EDIT TAG ------------------------------
+# [-] --------------------------- END OF EDIT TAG ------------------------------
 
 
 #--- Adding extra feature to change backgroung color----------------------------
     def change_bg_color(color,fgcolor='white'):
         text_box.config(bg=color,fg=fgcolor)
 
-    # create bg_color menu
+# [+] _____________________________adding submenu 'Format' in my main menu__________________________________________
     Format = tk.Menu(main_menu, tearoff=0)
-    bg_color_menu = tk.Menu(Format, tearoff=0)
-    bg_color_menu.add_command(label="White", command=lambda: change_bg_color("white",'black'))
-    bg_color_menu.add_command(label="Black", command=lambda: change_bg_color("black",'white'))
-    bg_color_menu.add_command(label="Gray", command=lambda: change_bg_color("gray",))
-    bg_color_menu.add_command(label="Brown", command=lambda: change_bg_color("brown",))
-    bg_color_menu.add_command(label="Red", command=lambda: change_bg_color("red",))
-    bg_color_menu.add_command(label="Yellow", command=lambda: change_bg_color("yellow",'red'))
-    bg_color_menu.add_command(label="Green", command=lambda: change_bg_color("green",'yellow'))
-    Format.add_cascade(label="Bg Color", menu=bg_color_menu)
+    bg_submenu_format = tk.Menu(Format, tearoff=0)
+    bg_submenu_format.add_command(label="White", command=lambda: change_bg_color("white",'black'))
+    bg_submenu_format.add_command(label="Black", command=lambda: change_bg_color("black",'white'))
+    bg_submenu_format.add_command(label="Gray", command=lambda: change_bg_color("gray",))
+    bg_submenu_format.add_command(label="Brown", command=lambda: change_bg_color("brown",))
+    bg_submenu_format.add_command(label="Red", command=lambda: change_bg_color("red",))
+    bg_submenu_format.add_command(label="Yellow", command=lambda: change_bg_color("yellow",'red'))
+    bg_submenu_format.add_command(label="Green", command=lambda: change_bg_color("green",'yellow'))
+    Format.add_cascade(label="Bg Color", menu=bg_submenu_format)
     main_menu.add_cascade(label='Format',menu=Format)
 
 
@@ -239,23 +242,23 @@ def Writing_Tablet():
 # adding feature which will count words and number of character and print it simulataneously at the bottom 
     status_label = tk.Label(root, text='')
     status_label.pack(side="bottom")
-    def print_text_stats(event=None):
+    def update_text_stats(event=None):
         # Get the text from the text box
         text = text_box.get("1.0", tk.END)
         # Count the number of characters
-        num_chars = len(text)
+        num_chars = len(text)-1
         # Count the number of words
         num_words = len(text.split())
         # Update the status label with the stats
         status_label.config(text=f"Characters: {num_chars} | Words: {num_words}")
 
-    text_box.bind("<KeyRelease>", print_text_stats)
+    text_box.bind("<KeyRelease>", update_text_stats)
 
 
 
 
-    scroll.config(command=text_box.xview)
-    scroll.config(command=text_box.yview)
+
+    scroll_y.config(command=text_box.xview)
     text_box.pack(fill='both', expand=True)
     root.config(menu=main_menu)
     root.mainloop()
