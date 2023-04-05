@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import tkinter.font as tkfont
 
 def Writing_Tablet():
     root = tk.Tk()
@@ -8,7 +9,17 @@ def Writing_Tablet():
     root.iconbitmap('icon.jpg')
 
     get_path=''
-#--------------------------------# Funtions for dropdown of Files---------------------------
+# [+] _____________________________adding Main Menu__________________________________________
+    main_menu = tk.Menu(root,bg='grey')
+
+# [+] _____________________________adding scroll bar for the text box__________________________________________
+    scroll_y = tk.Scrollbar(root)
+    scroll_y.pack(side='right',fill='y')
+
+# [+] _____________________________adding 'text box' Menu__________________________________________
+    text_box = tk.Text(root,font=("Helvetica", 12),yscrollcommand=scroll_y.set, wrap='word')
+    
+    # [-] Funtions for dropdown of Files  
     def open_file(event= None,path=None):
         nonlocal get_path
         if not path:
@@ -62,19 +73,10 @@ def Writing_Tablet():
         else:
             root.destroy()
 
-# [+] _____________________________adding Main Menu__________________________________________
-    main_menu = tk.Menu(root,bg='grey')
-
-# [+] _____________________________adding scroll bar for the text box__________________________________________
-    scroll_y = tk.Scrollbar(root)
-    scroll_y.pack(side='right',fill='y')
-
-# [+] _____________________________adding 'text box' Menu__________________________________________
-    text_box = tk.Text(root,font=("Helvetica", 12),yscrollcommand=scroll_y.set, wrap='word')
     
 
 
-# [+] _____________________________adding submenu 'File' in my main menu__________________________________________
+# [+] _____________________________adding submenu 'File' and it's cascade in my main menu__________________________________________
     submenu_file = tk.Menu(main_menu,tearoff=0)
     submenu_file.add_command(label="Open",accelerator='Ctrl+O', command=open_file)
     submenu_file.add_command(label="New file",accelerator='Ctrl+N', command=new_file)
@@ -92,9 +94,12 @@ def Writing_Tablet():
     root.bind("<Control-w>", new_window)
     root.protocol("WM_DELETE_WINDOW", quit_program)
 
-# [-] -------------Here File and it's submenu's work is finished---------------------------------------------------
+# [-]  ---------------------   Here File and it's submenu's work is finished  ------------------------ 
 
-# --------------------------------creating another button for menu---------------------------------
+# [+] ____________________adding submenu 'Edit' and it's cascade in my main menu_____________________
+
+
+    # [-] creating another button for menu
     def undo(event=None):
         try:
             text_box.edit_undo()
@@ -106,8 +111,7 @@ def Writing_Tablet():
     def cut(event=None):
         global selected_text
         try:
-            # Get the currently selected text in the text box
-            selected_text = root.clipboard_get()
+            selected_text = text_box.selection_get()
             text_box.delete(selected_text)
         except:
             return
@@ -115,12 +119,9 @@ def Writing_Tablet():
 
     def copy_text(event=None):
         try:
-            # Get the currently selected text in the text box
-            selected_text = root.clipboard_get()
+            selected_text = text_box.selection_get()
         except tk.TclError:
-            # If there is no selected text, do nothing
             return     
-        # Put the selected text on the clipboard
         root.clipboard_clear()
         root.clipboard_append(selected_text)
 
@@ -131,125 +132,149 @@ def Writing_Tablet():
         except:
             pass
         
-
     def find_and_replace(event=None):
-        # Create a Find and Replace window
+        count=0
         find_replace_window = tk.Toplevel(root)
-        # Create labels and entry widgets for Find and Replace fields
         tk.Label(find_replace_window, text="Find:").grid(row=0, column=0)
         find_entry = tk.Entry(find_replace_window)
         find_entry.grid(row=0, column=1)
         tk.Label(find_replace_window, text="Replace:").grid(row=1, column=0)
         replace_entry = tk.Entry(find_replace_window)
         replace_entry.grid(row=1, column=1)
-        # Create a label to display the number of occurrences of the search term
         count_label = tk.Label(find_replace_window, text="")
         count_label.grid(row=3, column=0, columnspan=2)
 
         # Create a function to find and replace text
         def replace_text():
-            # Get the text to find and the replacement text
+            nonlocal count
             find_text = find_entry.get()
             replace_text = replace_entry.get()
-            # Find all occurrences of the find text
             start = "1.0"
             while True:
                 start = text_box.search(find_text, start, stopindex=tk.END)
                 if not start:
                     break
-                # Replace the text
                 end = f"{start}+{len(find_text)}c"
                 text_box.delete(start, end)
                 text_box.insert(start, replace_text)
-                # Move the start position to the end of the replaced text
                 start = end
-                count+=1
+                count -= 1
+            highlight_text()
 
-
-# Create a function to highlight the text
+        # Create a function to highlight the text
         def highlight_text(event=None):
-            # Get the text to find
+            nonlocal count
             find_text = find_entry.get()
-            # Remove any existing tags
-            text_box.tag_remove("highlight", "1.0", tk.END)
-            # If find entry is empty, return without searching for or highlighting any text
             if not find_text:
                 count_label.config(text="")
+                text_box.tag_remove("highlight", "1.0", tk.END)
                 return
-            # Find all occurrences of the find text
             start = "1.0"
             count = 0
             while True:
                 start = text_box.search(find_text, start, stopindex=tk.END)
                 if not start:
                     break
-                # Highlight the text
                 end = f"{start}+{len(find_text)}c"
                 text_box.tag_add("highlight", start, end)
-                # Move the start position to the end of the highlighted text
                 start = end
-                count+=1
-            # Update the count label
+                count += 1
             count_label.config(text=f"{count} occurrences")
+            text_box.tag_configure("highlight", background="yellow")
 
-        # Bind the highlight_text function to the find entry
-        find_entry.bind("<KeyRelease>", highlight_text)
-        # Create a button to run the replace_text function
         replace_button = tk.Button(find_replace_window, text="Replace", command=replace_text)
         replace_button.grid(row=2, column=0, columnspan=2)
-        # Add a tag configuration for highlighting
+
+        find_entry.bind("<KeyRelease>", highlight_text)
+        replace_entry.bind("<KeyRelease>", highlight_text)
         text_box.tag_configure("highlight", background="yellow")
 
-# [+] _____________________________adding submenu 'Edit' in my main menu__________________________________________
+
     submenu_edit = tk.Menu(main_menu, tearoff=0)
     submenu_edit.add_command(label='Undo',accelerator='Ctrl+Z',command=undo)
     submenu_edit.add_command(label='Cut',accelerator='Ctrl+X',command=cut)
     submenu_edit.add_command(label='Copy',accelerator='Ctrl+C',command=copy_text)
     submenu_edit.add_command(label='Paste',accelerator='Ctrl+V',command=paste)
-    submenu_edit.add_command(label='Find & Replace',accelerator='Ctrl+h',command=find_and_replace)
+    submenu_edit.add_command(label='Find & Replace',accelerator='Ctrl+H',command=find_and_replace)
     main_menu.add_cascade(label='Edit', menu=submenu_edit)
 
 
-# # binding shortcut for submenu of edit button
+    # binding shortcut for submenu of edit button
     root.bind("<Control-z>", undo)
     root.bind("<Control-x>", cut)
     root.bind("<Control-c>", copy_text)
     root.bind("<Control-v>", paste)
     root.bind("<Control-h>", find_and_replace)
 
-# [-] --------------------------- END OF EDIT TAG ------------------------------
+# [-]-------------------------------------------END OF EDIT TAG---------------------------------------
 
 
-#--- Adding extra feature to change backgroung color----------------------------
-    def change_bg_color(color,fgcolor='white'):
-        text_box.config(bg=color,fg=fgcolor)
+# [+] ____________________adding submenu 'Format' and it's cascade in my main menu_____________________
 
-# [+] _____________________________adding submenu 'Format' in my main menu__________________________________________
+    #  Adding extra feature to change backgroung and foreground color  -
+    def change_bg_color(bgcolor='white'):
+        text_box.config(bg=bgcolor)
+    def change_fg_color(fgcolor='black'):
+        text_box.config(fg=fgcolor)
+
+    tags = text_box.tag_names()
+    def apply_style(style):
+        pass
+    #     root.clipboard_clear()
+    #     root.clipboard_append("")
+    #     if style not in tags:
+    #         text_box.tag_add(style, "sel.first", "sel.last")
+    #         font_kwargs = {style: True}
+    #         font = tkfont.Font(text_box, **font_kwar
+
+
     Format = tk.Menu(main_menu, tearoff=0)
+    # first submenu....of 'format'
     bg_submenu_format = tk.Menu(Format, tearoff=0)
-    bg_submenu_format.add_command(label="White", command=lambda: change_bg_color("white",'black'))
-    bg_submenu_format.add_command(label="Black", command=lambda: change_bg_color("black",'white'))
-    bg_submenu_format.add_command(label="Gray", command=lambda: change_bg_color("gray",))
-    bg_submenu_format.add_command(label="Brown", command=lambda: change_bg_color("brown",))
+    bg_submenu_format.add_command(label="White", command=lambda: change_bg_color("white"))
+    bg_submenu_format.add_command(label="Black", command=lambda: change_bg_color("black"))
+    bg_submenu_format.add_command(label="Gray", command=lambda: change_bg_color("gray"))
+    bg_submenu_format.add_command(label="Brown", command=lambda: change_bg_color("brown"))
     bg_submenu_format.add_command(label="Red", command=lambda: change_bg_color("red",))
-    bg_submenu_format.add_command(label="Yellow", command=lambda: change_bg_color("yellow",'red'))
-    bg_submenu_format.add_command(label="Green", command=lambda: change_bg_color("green",'yellow'))
+    bg_submenu_format.add_command(label="Yellow", command=lambda: change_bg_color("yellow"))
+    bg_submenu_format.add_command(label="Green", command=lambda: change_bg_color("green"))
     Format.add_cascade(label="Bg Color", menu=bg_submenu_format)
+    # adding 'font color' submenu in format
+    fg_submenu_format = tk.Menu(Format, tearoff=0)
+    fg_submenu_format.add_command(label="White", command=lambda: change_fg_color(fgcolor="white"))
+    fg_submenu_format.add_command(label="Black", command=lambda: change_fg_color(fgcolor="black"))
+    fg_submenu_format.add_command(label="Gray", command=lambda: change_fg_color(fgcolor="gray"))
+    fg_submenu_format.add_command(label="Brown", command=lambda: change_fg_color(fgcolor="brown"))
+    fg_submenu_format.add_command(label="Red", command=lambda: change_fg_color(fgcolor="red"))
+    fg_submenu_format.add_command(label="Yellow", command=lambda: change_fg_color(fgcolor="yellow"))
+    fg_submenu_format.add_command(label="Green", command=lambda: change_fg_color(fgcolor="green"))
+    Format.add_cascade(label="Font Color", menu=fg_submenu_format)
+
+    # adding 'style' sub menu in 'format'
+    style_submenu_format = tk.Menu(Format, tearoff=0)
+    style_submenu_format.add_command(label="Bold", accelerator='Ctrl+B', command=apply_style('bold'))
+    style_submenu_format.add_command(label="Italic", accelerator='Ctrl+I', command=apply_style('italic'))
+    style_submenu_format.add_command(label="Underline", accelerator='Ctrl+U', command=apply_style('underline'))
+
+    Format.add_cascade(label="Style", menu=style_submenu_format)
+
+
+
+
+    root.bind("<Control-b>", apply_style('bold'))
+    root.bind("<Control-i>", apply_style('italic'))
+    root.bind("<Control-u>", apply_style('underline'))
     main_menu.add_cascade(label='Format',menu=Format)
 
 
 
-# adding feature which will count words and number of character and print it simulataneously at the bottom 
+# [+] adding feature which will count words and number of character and print it simulataneously at the bottom 
     status_label = tk.Label(root, text='')
     status_label.pack(side="bottom")
     def update_text_stats(event=None):
-        # Get the text from the text box
         text = text_box.get("1.0", tk.END)
-        # Count the number of characters
         num_chars = len(text)-1
-        # Count the number of words
         num_words = len(text.split())
-        # Update the status label with the stats
         status_label.config(text=f"Characters: {num_chars} | Words: {num_words}")
 
     text_box.bind("<KeyRelease>", update_text_stats)
